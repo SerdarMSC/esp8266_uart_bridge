@@ -10,6 +10,8 @@ Make sure a compiler toolchain is installed, if not see [here](https://github.co
 To build the project, run `make`.
 ```
 cd /path/to/esp_iot_rtos_sdk
+git clone https://github.com/alu96/esp8266_uart_bridge.git
+cd esp8266_uart_bridge
 make
 ```
 
