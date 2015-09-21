@@ -73,3 +73,19 @@ int ICACHE_FLASH_ATTR ringbuf_get(ringbuf *r, unsigned char *c) {
 
     return 0;
 }
+
+/**
+* \brief remove all characters from ringbuffer
+* \param r pointer to a ringbuf object
+* \return 0 if successful, otherwise failed
+*/
+int ICACHE_FLASH_ATTR ringbuf_truncate(ringbuf *r) {
+    if (r == NULL) {
+        return -1;
+    }
+
+    r->fill_cnt = 0;
+    r->p_r = r->p_w = r->p_o; // reset read and write pointer to beginning
+
+    return 0;
+}

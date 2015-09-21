@@ -1,7 +1,7 @@
 /*
 The MIT License (MIT)
 
-Copyright (c) 2015
+Copyright (c) 2015 alu96
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -36,7 +36,7 @@ SOFTWARE.
 
 #include "user_config.h"
 
-#define DBG(str, ...) printf(str "\n", ##__VA_ARGS__)
+#define DBG(str, ...) //printf(str "\n", ##__VA_ARGS__)
 
 int current_sock = -1;
 
@@ -47,10 +47,14 @@ ringbuf ringbuf_m, ringbuf_t; // main and temporary ringbuffer
 
 unsigned char rx_buffer[1024];
 
-unsigned char tx_buffer_m[1024*4];
+unsigned char tx_buffer_m[1024 * 4];
 unsigned char tx_buffer_t[256];
 
 void uart_rx(int length) {
+    // buffer will be filled only if a client is connected
+    if (current_sock < 0)
+        return;
+
     int i = 0;
     unsigned char c;
     bool rb_full = false;
@@ -83,9 +87,7 @@ void uart_rx(int length) {
     DBG("uart_rx: %d b", length);
 
     // notify send task that there is data to be sent
-    if (!xQueueSendToBackFromISR(tx_queue, &i, NULL)) {
-
-    }
+    xQueueSendToBackFromISR(tx_queue, &length, NULL);
 
     if (rb_full) {
         // not every byte could be put in one of the two ringbuffers
@@ -161,7 +163,7 @@ void write_task(void *pvParameters) {
     vTaskDelete(NULL);
 }
 
-void listenTask(void *pvParameters) {
+void listen_task(void *pvParameters) {
     while (1) {
         struct sockaddr_in server_addr, client_addr;
         int server_sock, client_sock;
@@ -211,6 +213,10 @@ void listenTask(void *pvParameters) {
 
                 printf("S > Client from %s %d\n", inet_ntoa(client_addr.sin_addr), htons(client_addr.sin_port));
 
+                // reset all ringbuffers that may still contain data from last connection
+                ringbuf_truncate(&ringbuf_t);
+                ringbuf_truncate(&ringbuf_m);
+
                 current_sock = client_sock;
 
                 xTaskCreate(read_task, "read_task", 256, NULL, 2, NULL);
@@ -229,13 +235,14 @@ void listenTask(void *pvParameters) {
 void user_init(void) {
     printf("SDK version:%s\n", system_get_sdk_version());
 
+#ifdef DOUBLE_CLK_FREQ
     system_update_cpu_freq(160);
+#endif
 
     struct softap_config ap_conf;
 
-    // make sure the device is in AP and STA combined mode
-    uint8 mode = wifi_get_opmode();
-    if (mode != SOFTAP_MODE) {
+    // make sure the device is in AP mode
+    if (wifi_get_opmode() != SOFTAP_MODE) {
         wifi_set_opmode(SOFTAP_MODE);
     }
 
@@ -255,11 +262,12 @@ void user_init(void) {
 
     uart_init_new(BAUD, uart_rx);
 
-    tx_queue = xQueueCreate(1, sizeof(int)); // TODO queue is not really needed any more, maybe there is something better to use...
+    tx_queue = xQueueCreate(1, sizeof(int));    // TODO queue is not really needed any more,
+                                                // maybe there is something better to use...
     ringbuf_mutex = xSemaphoreCreateMutex();
 
     ringbuf_init(&ringbuf_m, tx_buffer_m, sizeof(tx_buffer_m));
     ringbuf_init(&ringbuf_t, tx_buffer_t, sizeof(tx_buffer_t));
 
-    xTaskCreate(listenTask, "listenTask", 256, NULL, 2, NULL);
+    xTaskCreate(listen_task, "listen_task", 256, NULL, 2, NULL);
 }

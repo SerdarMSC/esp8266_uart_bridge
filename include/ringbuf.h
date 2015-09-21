@@ -15,5 +15,6 @@ int ICACHE_FLASH_ATTR ringbuf_init(ringbuf *r, unsigned char *buf, int size);
 int ICACHE_FLASH_ATTR ringbuf_owr(ringbuf *r, unsigned char c);
 int ICACHE_FLASH_ATTR ringbuf_put(ringbuf *r, unsigned char c);
 int ICACHE_FLASH_ATTR ringbuf_get(ringbuf *r, unsigned char *c);
+int ICACHE_FLASH_ATTR ringbuf_truncate(ringbuf *r);
 
 #endif
