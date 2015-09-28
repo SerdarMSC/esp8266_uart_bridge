@@ -2,4 +2,4 @@
 #
 # Dependencies: esptool.py
 
-esptool.py --port /dev/ttyUSB0 write_flash 0x40000 ../bin/eagle.irom0text.bin 0x00000 ../bin/eagle.flash.bin
+esptool.py --port /dev/ttyUSB0 write_flash 0x40000 firmware/eagle.irom0text.bin 0x00000 firmware/eagle.flash.bin
