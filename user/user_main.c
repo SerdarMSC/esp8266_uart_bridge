@@ -142,16 +142,11 @@ void write_task(void *pvParameters) {
                 printf("write_task: semphr already taken\n");
             }
 
-            bool write_failed = false;
             if (write(current_sock, tx_buffer_m, i) < 0) {
                 printf("C > send fail\n");
 
                 close(current_sock);
                 current_sock = -1;
-                write_failed = true;
-            }
-
-            if (write_failed) {
                 break;
             }
         } else {
@@ -197,7 +192,7 @@ void listen_task(void *pvParameters) {
 
             sin_size = sizeof(client_addr);
 
-            for (; ;) {
+            while (1) {
                 printf("S > wait client\n");
 
                 if ((client_sock = accept(server_sock, (struct sockaddr *) &client_addr, &sin_size)) < 0) {
@@ -207,8 +202,13 @@ void listen_task(void *pvParameters) {
 
                 // we allow only one connection
                 if (current_sock >= 0) {
+#ifdef KEEP_CLIENT
+                    close(client_sock);
+                    continue;
+#else
                     close(current_sock);
                     current_sock = -1;
+#endif
                 }
 
                 printf("S > Client from %s %d\n", inet_ntoa(client_addr.sin_addr), htons(client_addr.sin_port));
@@ -262,8 +262,9 @@ void user_init(void) {
 
     uart_init_new(BAUD, uart_rx);
 
-    tx_queue = xQueueCreate(1, sizeof(int));    // TODO queue is not really needed any more,
-                                                // maybe there is something better to use...
+    // TODO queue is not really needed any more, maybe there is something better to use...
+    tx_queue = xQueueCreate(1, sizeof(int));
+
     ringbuf_mutex = xSemaphoreCreateMutex();
 
     ringbuf_init(&ringbuf_m, tx_buffer_m, sizeof(tx_buffer_m));

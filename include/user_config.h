@@ -9,7 +9,14 @@
 #define TX_POWER 81
 #define CHANNEL 6
 
-#define DOUBLE_CLK_FREQ // increases clock frequency from 80 MHz to 160 Mhz, might improve performance
+/*
+ * if KEEP_CLIENT defined:  connection will be kept open until client disconnects by itself
+ * otherwise:               when a new client tries to connect, the previously opened connection will be closed
+ */
+#define KEEP_CLIENT
+
+#define DOUBLE_CLK_FREQ     // increases clock frequency from 80 MHz to 160 Mhz,
+                            // might improve performance, but increase power consumption
 
 #endif
 
