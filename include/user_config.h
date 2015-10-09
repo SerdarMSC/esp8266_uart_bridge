@@ -9,6 +9,8 @@
 #define TX_POWER 81
 #define CHANNEL 6
 
+#define TCP_PORT 8000
+
 /*
  * if KEEP_CLIENT defined:  connection will be kept open until client disconnects by itself
  * otherwise:               when a new client tries to connect, the previously opened connection will be closed

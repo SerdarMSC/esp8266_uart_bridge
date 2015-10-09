@@ -92,7 +92,7 @@ void uart_rx(int length) {
     if (rb_full) {
         // not every byte could be put in one of the two ringbuffers
         // we can just print a message about it
-        DBG("uart_rx: ringbuff overflow");
+        DBG("uart_rx: ringbuf overflow");
     }
 }
 
@@ -166,7 +166,7 @@ void listen_task(void *pvParameters) {
         bzero(&server_addr, sizeof(struct sockaddr_in));
         server_addr.sin_family = AF_INET;
         server_addr.sin_addr.s_addr = INADDR_ANY;
-        server_addr.sin_port = htons(8000);
+        server_addr.sin_port = htons(TCP_PORT);
 
         do {
             if (-1 == (server_sock = socket(AF_INET, SOCK_STREAM, 0))) {
