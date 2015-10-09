@@ -52,8 +52,13 @@ unsigned char tx_buffer_t[256];
 
 void uart_rx(int length) {
     // buffer will be filled only if a client is connected
-    if (current_sock < 0)
+    if (current_sock < 0) {
+        while (length-- > 0) {
+            // throw received character away to clear interrupt
+            uart_rx_one_char(UART0);
+        }
         return;
+    }
 
     int i = 0;
     unsigned char c;
